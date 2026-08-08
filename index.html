@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือสรุปการหา Subnet & Lab จำลองการจัดสรร IP Address</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Navigation Bar -->
+  <nav class="sticky top-0 z-50 bg-slate-900 text-white shadow-lg border-b border-slate-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-sky-500 rounded-lg text-white">
+            <i class="fa-solid fa-network-wired text-xl"></i>
+          </div>
+          <div>
+            <span class="font-bold text-lg sm:text-xl tracking-tight text-sky-400">Subnet & Lab Guide</span>
+            <span class="hidden md:inline-block text-xs bg-sky-900 text-sky-200 px-2 py-0.5 rounded-full ml-2 border border-sky-700">เตรียมสอบ & ฝึกปฏิบัติการ</span>
+          </div>
+        </div>
+        <div class="hidden md:flex space-x-1 lg:space-x-3 text-sm font-medium">
+          <a href="#tricks" class="px-3 py-2 rounded-md hover:bg-slate-800 hover:text-sky-400 transition"><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> สูตรลัด</a>
+          <a href="#table" class="px-3 py-2 rounded-md hover:bg-slate-800 hover:text-sky-400 transition"><i class="fa-solid fa-table text-emerald-400 mr-1"></i> ตาราง Prefix</a>
+          <a href="#subnet-calc" class="px-3 py-2 rounded-md hover:bg-slate-800 hover:text-sky-400 transition"><i class="fa-solid fa-calculator text-blue-400 mr-1"></i> หลักการหา Host</a>
+          <a href="#interactive-lab" class="px-3 py-2 rounded-md bg-purple-600 hover:bg-purple-500 text-white transition"><i class="fa-solid fa-laptop-code mr-1"></i> 🧪 Lab จัดสรร IP ตัวเอง</a>
+          <a href="#interactive-tool" class="px-3 py-2 rounded-md bg-sky-600 hover:bg-sky-500 text-white transition"><i class="fa-solid fa-gamepad mr-1"></i> ควิซสอบ</a>
+        </div>
+        <div class="md:hidden">
+          <button id="mobile-menu-btn" class="p-2 rounded-md text-slate-300 hover:bg-slate-800">
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-slate-800 px-4 pt-2 pb-4 space-y-1 text-sm border-t border-slate-700">
+      <a href="#tricks" class="block px-3 py-2 rounded-md text-slate-200 hover:bg-slate-700"><i class="fa-solid fa-bolt text-amber-400 w-6"></i> สูตรลัด & Keywords</a>
+      <a href="#table" class="block px-3 py-2 rounded-md text-slate-200 hover:bg-slate-700"><i class="fa-solid fa-table text-emerald-400 w-6"></i> ตาราง Prefix</a>
+      <a href="#subnet-calc" class="block px-3 py-2 rounded-md text-slate-200 hover:bg-slate-700"><i class="fa-solid fa-calculator text-blue-400 w-6"></i> หลักการหา Host</a>
+      <a href="#interactive-lab" class="block px-3 py-2 rounded-md text-purple-300 font-semibold bg-purple-950/60"><i class="fa-solid fa-laptop-code w-6"></i> 🧪 Lab จัดสรร IP ตัวเอง</a>
+      <a href="#interactive-tool" class="block px-3 py-2 rounded-md text-sky-300 font-semibold bg-sky-950/60"><i class="fa-solid fa-gamepad w-6"></i> ควิซซ้อมสอบ</a>
+    </div>
+  </nav>
+
+  <!-- Hero Header -->
+  <header class="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8 border-b border-sky-800/40 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    <div class="max-w-5xl mx-auto text-center relative z-10">
+      <span class="inline-block bg-sky-500/20 text-sky-300 text-xs font-semibold px-3 py-1 rounded-full border border-sky-500/30 mb-4">
+        📚 คู่มือเตรียมสอบ & 🧪 Interactive Lab ฝึกคำนวณไอพี
+      </span>
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+        สรุป Subnetting & <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-300">IP Allocation Lab</span>
+      </h1>
+      <p class="text-slate-300 text-base sm:text-lg max-w-3xl mx-auto font-light leading-relaxed">
+        ระบบสุ่มโจทย์แบบ Multi-Subnet (1-4 Subnet) พร้อมอธิบายหลักการหา Host อย่างละเอียดเพื่อเตรียมพิชิตข้อสอบ
+      </p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 flex-grow">
+
+    <!-- SECTION 1: TRICKS & FORMULAS -->
+    <section id="tricks" class="scroll-mt-20">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="p-2.5 bg-amber-500 text-slate-900 rounded-xl shadow-md font-bold">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">1. ทริค สูตร เทคนิค และ Keywords ที่ต้องจำก่อนสอบ</h2>
+          <p class="text-sm text-slate-500">ท่องจำกฎเหล็กช่วยให้ทำข้อสอบคำนวณและ Lab ได้รวดเร็ว</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <span class="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-md mb-3">สูตรที่ 1: จำนวน Host</span>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Usable Hosts</h3>
+          <div class="bg-slate-900 text-amber-300 font-mono text-center text-xl py-3 rounded-xl my-3 shadow-inner">
+            2<sup>h</sup> - 2
+          </div>
+          <p class="text-sm text-slate-600">โดย <strong>h = จำนวนบิต Host (ศูนย์)</strong> ต้องลบ 2 เสมอสำหรับ Network IP และ Broadcast IP</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <span class="inline-block bg-sky-100 text-sky-800 text-xs font-bold px-2.5 py-1 rounded-md mb-3">สูตรที่ 2: Block Size</span>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Magic Number</h3>
+          <div class="bg-slate-900 text-sky-300 font-mono text-center text-xl py-3 rounded-xl my-3 shadow-inner">
+            256 - Subnet Mask Octet
+          </div>
+          <p class="text-sm text-slate-600">ใช้นับช่วงย่าน Network IP ถัดไปได้อย่างรวดเร็ว เช่น 0, 64, 128, 192</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <span class="inline-block bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-md mb-3">สูตรที่ 3: ความสัมพันธ์บิต</span>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Network + Host = 32</h3>
+          <div class="bg-slate-900 text-emerald-300 font-mono text-center text-xl py-3 rounded-xl my-3 shadow-inner">
+            h = 32 - Prefix
+          </div>
+          <p class="text-sm text-slate-600">เช่น /27 จะเหลือ Host bits = 32 - 27 = 5 บิต คิดเป็น Usable Hosts = 2⁵ - 2 = 30</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: PREFIX TABLE -->
+    <section id="table" class="scroll-mt-20">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="p-2.5 bg-emerald-500 text-white rounded-xl shadow-md font-bold">
+          <i class="fa-solid fa-table text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">2. ตาราง /Prefix (CIDR) ที่ออกสอบบ่อยที่สุด</h2>
+          <p class="text-sm text-slate-500">ท่องจำย่าน /24 ถึง /30 ให้แม่นยำสำหรับการจัดสรรโครงข่าย</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-900 text-slate-200 border-b border-slate-800">
+                <th class="py-3 px-4">Prefix</th>
+                <th class="py-3 px-4">Subnet Mask</th>
+                <th class="py-3 px-4">Host Bits (h)</th>
+                <th class="py-3 px-4 text-center">Block Size</th>
+                <th class="py-3 px-4 text-center text-emerald-400">Usable Hosts</th>
+                <th class="py-3 px-4">การใช้งานในข้อสอบ/แล็บ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 text-slate-700">
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/24</td><td class="py-3 px-4 font-mono">255.255.255.0</td><td class="py-3 px-4 font-mono">8</td><td class="py-3 px-4 font-mono text-center">256</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">254</td><td class="py-3 px-4 text-xs">Standard Class C LAN ใหญ่</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/25</td><td class="py-3 px-4 font-mono">255.255.255.128</td><td class="py-3 px-4 font-mono">7</td><td class="py-3 px-4 font-mono text-center">128</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">126</td><td class="py-3 px-4 text-xs">แบ่งครึ่ง Class C (63-126 hosts)</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/26</td><td class="py-3 px-4 font-mono">255.255.255.192</td><td class="py-3 px-4 font-mono">6</td><td class="py-3 px-4 font-mono text-center">64</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">62</td><td class="py-3 px-4 text-xs">LAN ขนาดกลาง (เช่น R2 LAN 50 hosts) <span class="text-rose-500 font-bold">*ออกบ่อย*</span></td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/27</td><td class="py-3 px-4 font-mono">255.255.255.224</td><td class="py-3 px-4 font-mono">5</td><td class="py-3 px-4 font-mono text-center">32</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">30</td><td class="py-3 px-4 text-xs">LAN ขนาดเล็ก (เช่น R1 LAN 20 hosts) <span class="text-rose-500 font-bold">*ออกบ่อย*</span></td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/28</td><td class="py-3 px-4 font-mono">255.255.255.240</td><td class="py-3 px-4 font-mono">4</td><td class="py-3 px-4 font-mono text-center">16</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">14</td><td class="py-3 px-4 text-xs">กลุ่มย่อย / Department เล็กๆ</td></tr>
+              <tr class="hover:bg-slate-50"><td class="py-3 px-4 font-mono font-bold text-sky-600">/29</td><td class="py-3 px-4 font-mono">255.255.255.248</td><td class="py-3 px-4 font-mono">3</td><td class="py-3 px-4 font-mono text-center">8</td><td class="py-3 px-4 font-mono text-center font-bold text-emerald-600">6</td><td class="py-3 px-4 text-xs">Point-to-MultiPoint Servers</td></tr>
+              <tr class="bg-amber-50/50 hover:bg-amber-50"><td class="py-3 px-4 font-mono font-bold text-amber-700">/30</td><td class="py-3 px-4 font-mono font-bold">255.255.255.252</td><td class="py-3 px-4 font-mono font-bold">2</td><td class="py-3 px-4 font-mono text-center">4</td><td class="py-3 px-4 font-mono text-center font-bold text-amber-700">2</td><td class="py-3 px-4 text-xs font-semibold text-amber-900">WAN Link ระหว่าง Router 2 ตัว <span class="text-rose-600 font-bold">(บังคับจำ!)</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: DETAILED HOST CALCULATION PRINCIPLES -->
+    <section id="subnet-calc" class="scroll-mt-20 space-y-6">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-blue-600 text-white rounded-xl shadow-md font-bold">
+          <i class="fa-solid fa-calculator text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">3. หลักการหาจำนวน Host อย่างละเอียด</h2>
+          <p class="text-sm text-slate-500">วิธีการคำนวณบิตโฮสต์และการเลือกใช้ Prefix ให้สอดคล้องกับความต้องการของโจทย์</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-3">
+            <h3 class="font-bold text-blue-900 text-base flex items-center">
+              <i class="fa-solid fa-graduation-cap mr-2"></i> กฎการคำนวณหา Usable Hosts
+            </h3>
+            <p class="text-xs sm:text-sm text-blue-800 leading-relaxed">
+              เมื่อโจทย์กำหนดว่าต้องการรองรับเครื่องโฮสต์ (คอมพิวเตอร์, เซิร์ฟเวอร์, พอร์ตเราเตอร์) จำนวน X เครื่อง เราจะต้องหาค่าจำนวนบิตโฮสต์ (h) ที่น้อยที่สุดที่ทำให้สมการนี้เป็นจริง:
+            </p>
+            <div class="bg-slate-900 text-amber-300 font-mono text-center text-lg py-2 rounded-lg shadow-inner">
+              2<sup>h</sup> - 2 &ge; X
+            </div>
+            <p class="text-xs text-blue-800">
+              *เหตุผลที่ต้อง **- 2** เพราะในแต่ละ Subnet จะต้องถูกหักออก 2 IP เสมอคือ:*<br>
+              1. **Network IP:** ไอพีแรกสุด (ใช้ระบุตัวตนเครือข่าย ห้ามกำหนดให้เครื่อง Host)<br>
+              2. **Broadcast IP:** ไอพีสุดท้าย (ใช้ส่งข้อมูลหาทุกเครื่องในวง ห้ามกำหนดให้เครื่อง Host)
+            </p>
+          </div>
+
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 space-y-3">
+            <h3 class="font-bold text-emerald-900 text-base flex items-center">
+              <i class="fa-solid fa-lightbulb mr-2"></i> ตัวอย่างการเลือก Prefix จากจำนวน Host
+            </h3>
+            <ul class="text-xs sm:text-sm text-emerald-900 space-y-2">
+              <li>• ต้องการ <strong>50 Hosts</strong> -> ลอง h=5 (2^5-2 = 30 ไม่พอ) -> ใช้ h=6 (2^6-2 = 62 พอดี) -> ได้ Prefix = 32-6 =  <strong class="text-emerald-950 font-mono">/26</strong></li>
+              <li>• ต้องการ <strong>20 Hosts</strong> -> ลอง h=4 (2^4-2 = 14 ไม่พอ) -> ใช้ h=5 (2^5-2 = 30 พอดี) -> ได้ Prefix = 32-5 =  <strong class="text-emerald-950 font-mono">/27</strong></li>
+              <li>• ต้องการ <strong>2 Hosts</strong> (WAN Link) -> ใช้ h=2 (2^2-2 = 2 พอดีเป๊ะ) -> ได้ Prefix = 32-2 =  <strong class="text-emerald-950 font-mono">/30</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: INTERACTIVE IP ALLOCATION LAB (MULTI-SUBNET DYNAMIC) -->
+    <section id="interactive-lab" class="scroll-mt-20">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="p-2.5 bg-purple-600 text-white rounded-xl shadow-md font-bold">
+          <i class="fa-solid fa-laptop-code text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">4. 🧪 ห้อง Lab ฝึกปฏิบัติการ: จัดสรร IP Address (Multi-Subnet 1-4 Subnets)</h2>
+          <p class="text-sm text-slate-500">ระบบจะสุ่มจำนวน Subnet (1-4 แผนก) และสุ่มจำนวน Host แต่ละแผนก พร้อมช่องกรอกคำตอบตามจำนวน Subnet จริง</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+        
+        <!-- Challenge Header & Controls -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-purple-50 p-5 rounded-xl border border-purple-200 gap-4">
+          <div>
+            <span class="bg-purple-200 text-purple-900 text-xs font-bold px-2.5 py-1 rounded-md">โจทย์ Lab สุ่มหลาย Subnet</span>
+            <div id="lab-prompt-text" class="text-base sm:text-lg font-bold text-purple-950 mt-2">
+              กำลังโหลดโจทย์...
+            </div>
+          </div>
+          <div class="flex space-x-3 w-full md:w-auto">
+            <button onclick="toggleGuideline()" class="flex-1 md:flex-none px-4 py-2 bg-white border border-purple-300 text-purple-700 rounded-lg text-xs font-semibold hover:bg-purple-100 transition shadow-sm">
+              <i class="fa-solid fa-lightbulb mr-1 text-amber-500"></i> <span id="guide-toggle-btn-text">เปิด Guideline ช่วยคิด</span>
+            </button>
+            <button onclick="generateNewLab()" class="flex-1 md:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition shadow-sm">
+              <i class="fa-solid fa-rotate mr-1"></i> สุ่มโจทย์ใหม่
+            </button>
+          </div>
+        </div>
+
+        <!-- Guideline Box (Collapsible) -->
+        <div id="lab-guideline-box" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs sm:text-sm text-amber-950 space-y-2">
+          <div class="font-bold text-amber-900 flex items-center">
+            <i class="fa-solid fa-graduation-cap mr-2"></i> คำแนะนำและลำดับการทำโจทย์ VLSM (Guideline):
+          </div>
+          <div id="lab-guideline-content" class="space-y-1 text-amber-900">
+            <!-- Dynamic guidance -->
+          </div>
+        </div>
+
+        <!-- Dynamic Answer Fields Container based on Subnet count -->
+        <div id="lab-answers-container" class="space-y-6">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Submit & Feedback Actions -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+          <button onclick="checkLabAnswers()" class="w-full sm:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center">
+            <i class="fa-solid fa-check-to-slot mr-2"></i> ตรวจคำตอบ Lab ทุก Subnet
+          </button>
+          <div id="lab-feedback" class="text-xs sm:text-sm font-semibold text-slate-600">
+            <!-- Feedback msg -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 5: INTERACTIVE CALCULATOR & PRACTICE QUIZ -->
+    <section id="interactive-tool" class="scroll-mt-20 space-y-8">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md font-bold">
+          <i class="fa-solid fa-gamepad text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">5. เครื่องมือช่วยคำนวณ Subnet & ควิซวัดความพร้อม</h2>
+          <p class="text-sm text-slate-500">ทบทวนความรู้ก่อนเข้าห้องสอบจริง</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Calculator -->
+        <div class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <h3 class="text-base font-bold text-slate-800 flex items-center">
+            <i class="fa-solid fa-calculator text-indigo-500 mr-2"></i> คำนวณ Subnet ด่วน
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">IP Address (Class C)</label>
+              <input type="text" id="calc-ip" value="192.168.1.0" class="w-full text-sm font-mono p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">เลือก Prefix /CIDR</label>
+              <select id="calc-prefix" class="w-full text-sm font-mono p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <option value="24">/24 (255.255.255.0) - 254 Hosts</option>
+                <option value="25">/25 (255.255.255.128) - 126 Hosts</option>
+                <option value="26" selected>/26 (255.255.255.192) - 62 Hosts</option>
+                <option value="27">/27 (255.255.255.224) - 30 Hosts</option>
+                <option value="28">/28 (255.255.255.240) - 14 Hosts</option>
+                <option value="29">/29 (255.255.255.248) - 6 Hosts</option>
+                <option value="30">/30 (255.255.255.252) - 2 Hosts (WAN)</option>
+              </select>
+            </div>
+            <button onclick="calculateSubnet()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">คำนวณผลลัพธ์</button>
+          </div>
+          <div id="calc-result" class="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs space-y-2 mt-4"></div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-base font-bold text-slate-800 flex items-center">
+                <i class="fa-solid fa-graduation-cap text-indigo-500 mr-2"></i> ควิซซ้อมสอบ
+              </h3>
+              <span id="quiz-score" class="text-xs bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full">คะแนน: 0/3</span>
+            </div>
+            <div id="quiz-container" class="space-y-4"></div>
+          </div>
+          <div class="mt-6 flex justify-between items-center pt-4 border-t border-slate-100">
+            <button id="prev-quiz" onclick="prevQuiz()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition disabled:opacity-40" disabled>ข้อก่อนหน้า</button>
+            <button id="next-quiz" onclick="nextQuiz()" class="px-4 py-2 text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 rounded-lg transition">ข้อถัดไป</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="mb-2">📘 คู่มือเตรียมสอบ Subnet & Lab Simulation สำหรับนักศึกษาเครือข่ายคอมพิวเตอร์</p>
+      <p class="text-slate-500">สร้างด้วย HTML5, Tailwind CSS และ JavaScript</p>
+    </div>
+  </footer>
+
+  <!-- JS Logic -->
+  <script>
+    // Mobile Menu Toggle
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Multi-Subnet Dynamic Lab Generator (1-4 Subnets)
+    let currentSubnets = [];
+    let baseNetworkIP = "192.168.1.0";
+    let isGuidelineOpen = false;
+
+    const departmentNames = [
+      "แผนกการเงิน (Finance)", 
+      "โรงเรียน / ห้องแล็บคอม (School LAN)", 
+      "มหาวิทยาลัย / คณะวิศวกรรมฯ (University Dept)", 
+      "แผนกผู้บริหาร (Executive Office)",
+      "ฝ่ายไอทีและเซิร์ฟเวอร์ (IT & Server)",
+      "แผนกบุคคล (HR Department)"
+    ];
+
+    function generateNewLab() {
+      const baseNets = ["192.168.1.0", "10.0.0.0", "172.16.0.0"];
+      baseNetworkIP = baseNets[Math.floor(Math.random() * baseNets.length)];
+
+      const subnetCount = Math.floor(Math.random() * 4) + 1;
+
+      let rawReqs = [];
+      let shuffledNames = [...departmentNames].sort(() => 0.5 - Math.random());
+
+      for (let i = 0; i < subnetCount; i++) {
+        let hostCount;
+        if (i === 0) {
+          hostCount = Math.floor(Math.random() * 30) + 30;
+        } else if (i === 1) {
+          hostCount = Math.floor(Math.random() * 20) + 10;
+        } else if (i === 2) {
+          hostCount = Math.floor(Math.random() * 8) + 4;
+        } else {
+          hostCount = 2;
+        }
+        rawReqs.push({ name: shuffledNames[i], neededHosts: hostCount });
+      }
+
+      rawReqs.sort((a, b) => b.neededHosts - a.neededHosts);
+
+      currentSubnets = [];
+      let currentBaseParts = baseNetworkIP.split('.').map(Number);
+      let currentOffset = 0;
+
+      rawReqs.forEach((req, idx) => {
+        let h = 2;
+        while (Math.pow(2, h) - 2 < req.neededHosts) {
+          h++;
+        }
+        const prefix = 32 - h;
+        const totalBlock = Math.pow(2, h);
+        const usableHosts = totalBlock - 2;
+
+        let netOctet4 = Math.floor(currentOffset / totalBlock) * totalBlock;
+        if (netOctet4 < currentOffset) {
+          netOctet4 = Math.ceil(currentOffset / totalBlock) * totalBlock;
+        }
+
+        let netIp = `${currentBaseParts[0]}.${currentBaseParts[1]}.${currentBaseParts[2]}.${netOctet4}`;
+        let firstIp = `${currentBaseParts[0]}.${currentBaseParts[1]}.${currentBaseParts[2]}.${netOctet4 + 1}`;
+        let lastIp = `${currentBaseParts[0]}.${currentBaseParts[1]}.${currentBaseParts[2]}.${netOctet4 + totalBlock - 2}`;
+        let bcastIp = `${currentBaseParts[0]}.${currentBaseParts[1]}.${currentBaseParts[2]}.${netOctet4 + totalBlock - 1}`;
+
+        currentSubnets.push({
+          id: idx + 1,
+          name: req.name,
+          neededHosts: req.neededHosts,
+          prefix: prefix,
+          hostBits: h,
+          totalBlock: totalBlock,
+          usableHosts: usableHosts,
+          netIp: netIp,
+          firstIp: firstIp,
+          lastIp: lastIp,
+          bcastIp: bcastIp
+        });
+
+        currentOffset = netOctet4 + totalBlock;
+      });
+
+      let reqListStr = currentSubnets.map(s => `• <strong>Subnet #${s.id} (${s.name}):</strong> ต้องการ ${s.neededHosts} Hosts`).join('<br>');
+      document.getElementById('lab-prompt-text').innerHTML = `
+        🎯 <strong>โจทย์:</strong> กำหนดให้ใช้ย่าน IP ต้นทาง <code class="bg-purple-200 px-1 rounded">${baseNetworkIP}/24</code> จัดสรรโครงข่ายจำนวน <strong class="text-purple-900">${subnetCount} Subnets</strong> ดังนี้:<br>
+        <div class="mt-1 text-xs sm:text-sm text-purple-900 font-normal space-y-0.5">${reqListStr}</div>
+      `;
+
+      let guideSteps = currentSubnets.map(s => `
+        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร $2^h - 2 \\ge ${s.neededHosts} \\rightarrow h = ${s.hostBits}$ บิต $\\rightarrow$ Prefix /${s.prefix} (Total Block = ${s.totalBlock} IPs) $\\rightarrow$ ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
+      `).join('');
+      document.getElementById('lab-guideline-content').innerHTML = `
+        <p><strong>กฎเหล็ก VLSM:</strong> ต้องเรียงลำดับคำนวณจาก Subnet ที่ต้องการ Host มากที่สุดก่อนเสมอ!</p>
+        <ol class="list-decimal pl-5 space-y-1 mt-1">${guideSteps}</ol>
+      `;
+
+      let containerHtml = '';
+      currentSubnets.forEach(s => {
+        containerHtml += `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <span class="font-bold text-purple-800 text-sm sm:text-base"><i class="fa-solid fa-sitemap mr-2"></i> Subnet #${s.id}: ${s.name} (ต้องการ ${s.neededHosts} Hosts)</span>
+              <span class="text-xs bg-purple-100 text-purple-800 font-mono px-2.5 py-1 rounded">ลำดับที่ ${s.id}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">Network IP:</label>
+                <input type="text" id="ans-${s.id}-net" placeholder="เช่น 192.168.1.0" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">First Usable:</label>
+                <input type="text" id="ans-${s.id}-first" placeholder="เช่น 192.168.1.1" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">Last Usable:</label>
+                <input type="text" id="ans-${s.id}-last" placeholder="เช่น 192.168.1.62" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">Broadcast IP:</label>
+                <input type="text" id="ans-${s.id}-bcast" placeholder="เช่น 192.168.1.63" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">เหลือจำนวน host ที่ใช้งานได้:</label>
+                <input type="number" id="ans-${s.id}-usable" placeholder="เช่น 62" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">เหลือจำนวน host ที่จัดสรรได้:</label>
+                <input type="number" id="ans-${s.id}-total" placeholder="เช่น 64" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('lab-answers-container').innerHTML = containerHtml;
+      document.getElementById('lab-feedback').innerHTML = '';
+    }
+
+    function toggleGuideline() {
+      isGuidelineOpen = !isGuidelineOpen;
+      const box = document.getElementById('lab-guideline-box');
+      const btnText = document.getElementById('guide-toggle-btn-text');
+      if (isGuidelineOpen) {
+        box.classList.remove('hidden');
+        btnText.innerText = "ซ่อน Guideline";
+      } else {
+        box.classList.add('hidden');
+        btnText.innerText = "เปิด Guideline ช่วยคิด";
+      }
+    }
+
+    function checkLabAnswers() {
+      if (!currentSubnets || currentSubnets.length === 0) return;
+
+      let allCorrect = true;
+      let errorMessages = [];
+
+      currentSubnets.forEach(s => {
+        const uNet = document.getElementById(`ans-${s.id}-net`).value.trim();
+        const uFirst = document.getElementById(`ans-${s.id}-first`).value.trim();
+        const uLast = document.getElementById(`ans-${s.id}-last`).value.trim();
+        const uBcast = document.getElementById(`ans-${s.id}-bcast`).value.trim();
+        const uUsable = parseInt(document.getElementById(`ans-${s.id}-usable`).value);
+        const uTotal = parseInt(document.getElementById(`ans-${s.id}-total`).value);
+
+        if (uNet !== s.netIp || uFirst !== s.firstIp || uLast !== s.lastIp || uBcast !== s.bcastIp || uUsable !== s.usableHosts || uTotal !== s.totalBlock) {
+          allCorrect = false;
+          errorMessages.push(`Subnet #${s.id} (${s.name}) มีข้อมูลบางช่องไม่ถูกต้อง`);
+        }
+      });
+
+      const fb = document.getElementById('lab-feedback');
+      if (allCorrect) {
+        fb.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> ยอดเยี่ยม! คำตอบถูกต้องทุก Subnet 🎉</span>`;
+      } else {
+        fb.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> พบข้อผิดพลาด: ${errorMessages.join(", ")} ลองตรวจสอบใหม่อีกครั้งครับ</span>`;
+      }
+    }
+
+    // Subnet Quick Calculator
+    function calculateSubnet() {
+      const ipStr = document.getElementById('calc-ip').value.trim();
+      const prefix = parseInt(document.getElementById('calc-prefix').value);
+      const parts = ipStr.split('.');
+      if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
+        document.getElementById('calc-result').innerHTML = `<span class="text-rose-400">❌ รูปแบบ IP Address ไม่ถูกต้อง</span>`;
+        return;
+      }
+      const hostBits = 32 - prefix;
+      const totalIps = Math.pow(2, hostBits);
+      const usableHosts = hostBits > 1 ? totalIps - 2 : 0;
+      let maskOctet = 0;
+      for (let i = 0; i < (prefix - 24); i++) maskOctet += Math.pow(2, 7 - i);
+      const subnetMask = `255.255.255.${maskOctet}`;
+      const blockSize = 256 - maskOctet;
+      const netOctet3 = Math.floor(parseInt(parts[3]) / blockSize) * blockSize;
+      const broadcastOctet3 = netOctet3 + blockSize - 1;
+
+      document.getElementById('calc-result').innerHTML = `
+        <div class="text-sky-400 font-bold border-b border-slate-800 pb-1 mb-2">ผลลัพธ์ ${ipStr}/${prefix}</div>
+        <div class="flex justify-between"><span>Subnet Mask:</span> <span class="text-amber-300">${subnetMask}</span></div>
+        <div class="flex justify-between"><span>Block Size:</span> <span>${blockSize} IPs</span></div>
+        <div class="flex justify-between"><span>Usable Hosts:</span> <span class="text-emerald-400 font-bold">${usableHosts} Hosts</span></div>
+        <div class="pt-2 border-t border-slate-800 space-y-1">
+          <div><span class="text-slate-400">Network IP:</span> ${parts[0]}.${parts[1]}.${parts[2]}.${netOctet3}</div>
+          <div><span class="text-slate-400">First Usable:</span> <span class="text-emerald-300">${parts[0]}.${parts[1]}.${parts[2]}.${netOctet3 + 1}</span></div>
+          <div><span class="text-slate-400">Last Usable:</span> <span class="text-emerald-300">${parts[0]}.${parts[1]}.${parts[2]}.${broadcastOctet3 - 1}</span></div>
+          <div><span class="text-slate-400">Broadcast IP:</span> <span class="text-rose-300">${parts[0]}.${parts[1]}.${parts[2]}.${broadcastOctet3}</span></div>
+        </div>
+      `;
+    }
+
+    // Quiz Data & Logic
+    const quizData = [
+      {
+        question: "1. ในโจทย์ Lab จัดสรร IP แบบหลาย Subnet ทำไมต้องเริ่มคำนวณจาก Subnet ที่ต้องการ Host มากที่สุดก่อน?",
+        options: ["เพื่อให้เรียงลำดับตามตัวอักษร", "เพื่อป้องกันย่านไอพีซ้อนทับกัน (Overlap) และใช้พื้นที่คุ้มค่าที่สุดตามหลัก VLSM", "เพราะเป็นกฎของสาย Serial", "เพราะรหัสเราเตอร์ R2 มากกว่า R1"],
+        answer: 1,
+        explanation: "กฎเหล็ก VLSM คือต้องจัดสรรย่าน IP จาก Subnet ที่ต้องการ Host มากที่สุดก่อนเสมอ เพื่อความต่อเนื่องและป้องกัน IP ซ้อนทับ"
+      },
+      {
+        question: "2. ค่า Subnet Mask 255.255.255.192 มีค่าเท่ากับ Prefix แบบ CIDR ในข้อใด?",
+        options: ["/24", "/25", "/26", "/27"],
+        answer: 2,
+        explanation: "Octet สุดท้าย 192 เกิดจาก 128 + 64 (บิต 1 จำนวน 2 บิต) รวมกับ 24 บิตแรก จะได้ทั้งหมด 26 บิต (/26)"
+      },
+      {
+        question: "3. สูตรคำนวณหาจำนวน Usable Hosts ที่ถูกต้องคือข้อใด?",
+        options: ["2ʰ", "2ʰ - 1", "2ʰ - 2", "2(32 - Prefix)"],
+        answer: 2,
+        explanation: "ต้องลบ 2 เสมอจาก 2ʰ เพื่อหักออกสำหรับ Network Address และ Broadcast Address ซึ่งไม่สามารถนำไปตั้งค่าให้เครื่อง Host ได้"
+      }
+    ];
+
+    let currentQuizIndex = 0;
+    let userAnswers = Array(quizData.length).fill(null);
+
+    function renderQuiz() {
+      const q = quizData[currentQuizIndex];
+      const container = document.getElementById('quiz-container');
+      let optionsHtml = '';
+      q.options.forEach((opt, idx) => {
+        const isSelected = userAnswers[currentQuizIndex] === idx;
+        const isCorrect = idx === q.answer;
+        let btnStyle = "border-slate-200 hover:border-indigo-400 hover:bg-slate-50";
+        if (userAnswers[currentQuizIndex] !== null) {
+          if (isSelected) btnStyle = isCorrect ? "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold" : "border-rose-500 bg-rose-50 text-rose-900";
+          else if (isCorrect) btnStyle = "border-emerald-500 bg-emerald-50/60 text-emerald-900 font-bold";
+        }
+        optionsHtml += `<button onclick="selectAnswer(${idx})" ${userAnswers[currentQuizIndex] !== null ? 'disabled' : ''} class="w-full text-left p-3 border rounded-xl text-xs sm:text-sm transition flex items-center justify-between ${btnStyle}"><span>${opt}</span>${userAnswers[currentQuizIndex] !== null && isCorrect ? '<i class="fa-solid fa-circle-check text-emerald-600"></i>' : ''}</button>`;
+      });
+
+      let expHtml = userAnswers[currentQuizIndex] !== null ? `<div class="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-950"><strong>💡 เฉลย:</strong> ${q.explanation}</div>` : '';
+      container.innerHTML = `<div class="font-semibold text-slate-800 text-sm mb-3">${q.question}</div><div class="space-y-2">${optionsHtml}</div>${expHtml}`;
+      document.getElementById('prev-quiz').disabled = currentQuizIndex === 0;
+      document.getElementById('next-quiz').innerText = currentQuizIndex === quizData.length - 1 ? 'เสร็จสิ้น' : 'ข้อถัดไป';
+      const score = userAnswers.reduce((acc, ans, idx) => ans === quizData[idx].answer ? acc + 1 : acc, 0);
+      document.getElementById('quiz-score').innerText = `คะแนน: ${score}/${quizData.length}`;
+    }
+
+    function selectAnswer(optIdx) {
+      userAnswers[currentQuizIndex] = optIdx;
+      renderQuiz();
+    }
+
+    function nextQuiz() {
+      if (currentQuizIndex < quizData.length - 1) { currentQuizIndex++; renderQuiz(); }
+    }
+
+    function prevQuiz() {
+      if (currentQuizIndex > 0) { currentQuizIndex--; renderQuiz(); }
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      generateNewLab();
+      calculateSubnet();
+      renderQuiz();
+    };
+  </script>
+</body>
+</html>
