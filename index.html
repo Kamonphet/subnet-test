@@ -455,7 +455,7 @@
       `;
 
       let guideSteps = currentSubnets.map(s => `
-        <li><strong>Subnet #{s.id} $({s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร 2^h - 2 ${s.neededHosts} h = ${s.hostBits} บิต Prefix ${s.prefix} (Total Block = ${s.totalBlock} IPs) \\ ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
+        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร 2^h - 2 ${s.neededHosts} h = ${s.hostBits} บิต Prefix ${s.prefix} (Total Block = ${s.totalBlock} IPs) \\ ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
       `).join('');
       document.getElementById('lab-guideline-content').innerHTML = `
         <p><strong>กฎเหล็ก VLSM:</strong> ต้องเรียงลำดับคำนวณจาก Subnet ที่ต้องการ Host มากที่สุดก่อนเสมอ!</p>
