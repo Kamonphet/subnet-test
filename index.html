@@ -421,6 +421,10 @@
         const totalBlock = Math.pow(2, h);
         const usableHosts = totalBlock - 2;
 
+        let maskOctet = 0;
+        for (let i = 0; i < (prefix - 24); i++) maskOctet += Math.pow(2, 7 - i);
+        const subnetMask = `255.255.255.${maskOctet}`;
+
         let netOctet4 = Math.floor(currentOffset / totalBlock) * totalBlock;
         if (netOctet4 < currentOffset) {
           netOctet4 = Math.ceil(currentOffset / totalBlock) * totalBlock;
@@ -436,6 +440,7 @@
           name: req.name,
           neededHosts: req.neededHosts,
           prefix: prefix,
+          subnetMask: subnetMask,
           hostBits: h,
           totalBlock: totalBlock,
           usableHosts: usableHosts,
@@ -455,7 +460,7 @@
       `;
 
       let guideSteps = currentSubnets.map(s => `
-        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร 2^h - 2  ${s.neededHosts} -> h = ${s.hostBits} บิต -> Prefix /${s.prefix} (Total Block = ${s.totalBlock} IPs) -> ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
+        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร 2^h - 2  ${s.neededHosts} -> h = ${s.hostBits} บิต -> Prefix /${s.prefix} (Subnet Mask: ${s.subnetMask}) -> ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
       `).join('');
       document.getElementById('lab-guideline-content').innerHTML = `
         <p><strong>กฎเหล็ก VLSM:</strong> ต้องเรียงลำดับคำนวณจาก Subnet ที่ต้องการ Host มากที่สุดก่อนเสมอ!</p>
@@ -471,21 +476,26 @@
               <span class="text-xs bg-purple-100 text-purple-800 font-mono px-2.5 py-1 rounded">ลำดับที่ ${s.id}</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div class="space-y-1">
+<div class="space-y-1">
                 <label class="block text-xs font-semibold text-slate-700">Network IP:</label>
-                <input type="text" id="ans-${s.id}-net" placeholder="เช่น 192.168.1.0" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                <input type="text" id="ans-${s.id}-net" placeholder="x.x.x.x" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
               </div>
               <div class="space-y-1">
+                <label class="block text-xs font-semibold text-slate-700">Subnet Mask:</label>
+                <input type="text" id="ans-${s.id}-mask" placeholder="x.x.x.x" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              
+              <div class="space-y-1">
                 <label class="block text-xs font-semibold text-slate-700">First Usable:</label>
-                <input type="text" id="ans-${s.id}-first" placeholder="เช่น 192.168.1.1" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                <input type="text" id="ans-${s.id}-first" placeholder="x.x.x.x" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
               </div>
               <div class="space-y-1">
                 <label class="block text-xs font-semibold text-slate-700">Last Usable:</label>
-                <input type="text" id="ans-${s.id}-last" placeholder="เช่น 192.168.1.62" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                <input type="text" id="ans-${s.id}-last" placeholder="x.x.x.x" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
               </div>
               <div class="space-y-1">
                 <label class="block text-xs font-semibold text-slate-700">Broadcast IP:</label>
-                <input type="text" id="ans-${s.id}-bcast" placeholder="เช่น 192.168.1.63" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                <input type="text" id="ans-${s.id}-bcast" placeholder="x.x.x.x" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
               </div>
             </div>
           </div>
@@ -515,12 +525,13 @@
       let errorMessages = [];
 
       currentSubnets.forEach(s => {
+        const uMask = document.getElementById(`ans-${s.id}-mask`).value.trim();
         const uNet = document.getElementById(`ans-${s.id}-net`).value.trim();
         const uFirst = document.getElementById(`ans-${s.id}-first`).value.trim();
         const uLast = document.getElementById(`ans-${s.id}-last`).value.trim();
         const uBcast = document.getElementById(`ans-${s.id}-bcast`).value.trim();
 
-        if (uNet !== s.netIp || uFirst !== s.firstIp || uLast !== s.lastIp || uBcast !== s.bcastIp || uUsable !== s.usableHosts || uTotal !== s.totalBlock) {
+        if (uMask !== s.subnetMask || uNet !== s.netIp || uFirst !== s.firstIp || uLast !== s.lastIp || uBcast !== s.bcastIp) {
           allCorrect = false;
           errorMessages.push(`Subnet #${s.id} (${s.name}) มีข้อมูลบางช่องไม่ถูกต้อง`);
         }
