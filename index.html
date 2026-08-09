@@ -455,7 +455,7 @@
       `;
 
       let guideSteps = currentSubnets.map(s => `
-        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร $2^h - 2 \\ge ${s.neededHosts} \\rightarrow h = ${s.hostBits}$ บิต $\\rightarrow$ Prefix /${s.prefix} (Total Block = ${s.totalBlock} IPs) $\\rightarrow$ ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
+        <li><strong>Subnet #${s.id} (${s.name} - ${s.neededHosts} hosts):</strong> ใช้สูตร $2^h - 2  ${s.neededHosts} -> h = ${s.hostBits}$ บิต -> Prefix /${s.prefix} (Total Block = ${s.totalBlock} IPs) -> ช่วงไอพี ${s.netIp} ถึง ${s.bcastIp}</li>
       `).join('');
       document.getElementById('lab-guideline-content').innerHTML = `
         <p><strong>กฎเหล็ก VLSM:</strong> ต้องเรียงลำดับคำนวณจาก Subnet ที่ต้องการ Host มากที่สุดก่อนเสมอ!</p>
@@ -486,14 +486,6 @@
               <div class="space-y-1">
                 <label class="block text-xs font-semibold text-slate-700">Broadcast IP:</label>
                 <input type="text" id="ans-${s.id}-bcast" placeholder="เช่น 192.168.1.63" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-              </div>
-              <div class="space-y-1">
-                <label class="block text-xs font-semibold text-slate-700">เหลือจำนวน host ที่ใช้งานได้:</label>
-                <input type="number" id="ans-${s.id}-usable" placeholder="เช่น 62" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
-              </div>
-              <div class="space-y-1">
-                <label class="block text-xs font-semibold text-slate-700">เหลือจำนวน host ที่จัดสรรได้:</label>
-                <input type="number" id="ans-${s.id}-total" placeholder="เช่น 64" class="w-full font-mono text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
               </div>
             </div>
           </div>
@@ -527,8 +519,6 @@
         const uFirst = document.getElementById(`ans-${s.id}-first`).value.trim();
         const uLast = document.getElementById(`ans-${s.id}-last`).value.trim();
         const uBcast = document.getElementById(`ans-${s.id}-bcast`).value.trim();
-        const uUsable = parseInt(document.getElementById(`ans-${s.id}-usable`).value);
-        const uTotal = parseInt(document.getElementById(`ans-${s.id}-total`).value);
 
         if (uNet !== s.netIp || uFirst !== s.firstIp || uLast !== s.lastIp || uBcast !== s.bcastIp || uUsable !== s.usableHosts || uTotal !== s.totalBlock) {
           allCorrect = false;
